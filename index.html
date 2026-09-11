@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYC Video Call</title>
+    <style>
+:root {
+    --ink: #10151F;
+    --muted: #5B6472;
+    --paper: #F6F7F9;
+    --panel: #FFFFFF;
+    --line: #E2E5EA;
+    --accent: #0E7C6B;
+    --accent-ink: #0A5F52;
+    --accent-wash: #E6F2EF;
+    --danger: #C4432B;
+    --danger-wash: #FBEAE5;
+    --radius: 10px;
+    --shadow: 0 8px 24px rgba(16, 21, 31, 0.10);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+}
+
+.app {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---------------- Header ---------------- */
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.brand-name {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.role-badge {
+    font-size: 13px;
+    color: var(--muted);
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+}
+
+.status-dot.connected { background: var(--accent); }
+.status-dot.ended { background: var(--danger); }
+
+.status-text {
+    font-size: 13px;
+    color: var(--muted);
+    min-width: 76px;
+}
+
+/* ---------------- Main / Video area ---------------- */
+
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 20px;
+}
+
+.video-grid {
+    position: relative;
+    width: 100%;
+    max-width: 960px;
+    height: min(62vh, 560px);
+    background: var(--ink);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.video-card {
+    position: absolute;
+    background: #1B222E;
+}
+
+.video-card video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Remote feed fills the whole frame -- this is the primary view */
+.remote-card {
+    inset: 0;
+}
+
+/* Local camera floats as a picture-in-picture tile, like a real video call */
+.local-card {
+    width: 26%;
+    max-width: 180px;
+    aspect-ratio: 3 / 4;
+    right: 16px;
+    bottom: 16px;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    z-index: 3;
+}
+
+.video-label {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    background: rgba(16, 21, 31, 0.55);
+    border-radius: 100px;
+    font-size: 12px;
+    color: #fff;
+    z-index: 2;
+}
+
+.local-card .video-label {
+    font-size: 11px;
+    padding: 3px 7px;
+}
+
+.label-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.remote-dot { background: #8FA3B0; }
+.local-dot  { background: var(--accent); }
+
+.video-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #C7CDD6;
+    text-align: center;
+    padding: 12px;
+}
+
+.video-placeholder .avatar {
+    font-size: 30px;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+}
+
+.video-placeholder p {
+    margin: 0;
+    font-size: 13px;
+}
+
+.local-card .video-placeholder .avatar {
+    font-size: 18px;
+    width: 34px;
+    height: 34px;
+}
+
+.local-card .video-placeholder p {
+    font-size: 11px;
+}
+
+.unmute-btn {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    z-index: 4;
+    background: rgba(16, 21, 31, 0.7);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.unmute-btn:hover { background: rgba(16, 21, 31, 0.85); }
+
+/* ---------------- Controls ---------------- */
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 420px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: 100px;
+    padding: 13px 26px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.05s ease;
+    width: 100%;
+}
+
+.btn:active { transform: scale(0.98); }
+
+.btn-icon { font-size: 16px; line-height: 1; }
+
+.btn-primary {
+    background: var(--accent);
+    color: #fff;
+}
+.btn-primary:hover { background: var(--accent-ink); }
+
+.btn-danger {
+    background: var(--danger);
+    color: #fff;
+}
+.btn-danger:hover { background: #A6371F; }
+
+#customerLinkBox {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px;
+}
+
+#customerLinkBox p {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+#customerLinkBox > div,
+#customerLink {
+    width: 100%;
+}
+
+#customerLink {
+    display: block;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+}
+
+#copyLink {
+    width: 100%;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#copyLink:hover { background: var(--paper); }
+
+/* ---------------- Incoming call sheet ---------------- */
+
+.incoming-call {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: 420px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: var(--shadow);
+    z-index: 200;
+}
+
+.incoming-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.incoming-info { flex: 1; min-width: 0; }
+
+.incoming-info h3 {
+    margin: 0 0 2px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.incoming-info p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.incoming-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.incoming-actions .btn {
+    width: auto;
+    padding: 10px 14px;
+    font-size: 13px;
+}
+
+.btn-accept {
+    background: var(--accent-wash);
+    color: var(--accent-ink);
+}
+.btn-accept:hover { background: #D7ECE7; }
+
+.btn-reject {
+    background: var(--danger-wash);
+    color: var(--danger);
+}
+.btn-reject:hover { background: #F5DAD1; }
+
+/* ---------------- Notice banner ---------------- */
+
+.notice-banner {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 12px 20px;
+    font-size: 13px;
+    color: #fff;
+}
+
+.notice-error { background: var(--danger); }
+.notice-info  { background: var(--ink); }
+
+.notice-banner span { flex: 1; }
+
+.notice-banner button {
+    background: rgba(255, 255, 255, 0.18);
+    border: none;
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 100px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.notice-banner button:hover { background: rgba(255, 255, 255, 0.28); }
+
+/* ---------------- Responsive ---------------- */
+
+@media (max-width: 640px) {
+    .header { padding: 12px 16px; }
+    .brand-name { font-size: 15px; }
+    .main { padding: 16px; gap: 16px; }
+    .video-grid { height: 68dvh; border-radius: 12px; }
+    .local-card { width: 34%; max-width: 130px; right: 10px; bottom: 10px; }
+    .incoming-call { flex-direction: column; align-items: stretch; text-align: center; }
+    .incoming-actions { justify-content: center; }
+}
+
+/* ---------------- Accessibility ---------------- */
+
+button:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn { transition: none; }
+}
+
+    </style>
+</head>
+<body>
+    <div class="notice-banner" id="noticeBanner">
+        <span id="noticeText"></span>
+        <button id="noticeRetryBtn" style="display:none;">Retry</button>
+        <button id="noticeCloseBtn">✕</button>
+    </div>
+    <div class="app">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="brand">
+                <div class="brand-icon">🔐</div>
+                <span class="brand-name">KYC Verify</span>
+            </div>
+            <div class="header-right">
+                <span class="role-badge" id="role"></span>
+                <div class="status-dot" id="statusDot"></div>
+                <span class="status-text" id="statusText">Connecting...</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+
+            <!-- Video Grid -->
+            <div class="video-grid">
+                <div class="video-card remote-card">
+                    <video id="remoteVideo" autoplay playsinline muted></video>
+                    <div class="video-label">
+                        <span class="label-dot remote-dot"></span>
+                        <span id="remoteLabel">Remote</span>
+                    </div>
+                    <div class="video-placeholder" id="remotePlaceholder">
+                        <div class="avatar">👤</div>
+                        <p>Waiting for connection...</p>
+                    </div>
+                    <button class="unmute-btn" id="unmuteBtn">🔊 Enable Sound</button>
+                </div>
+
+                <div class="video-card local-card">
+                    <video id="localVideo" autoplay playsinline muted></video>
+                    <div class="video-label">
+                        <span class="label-dot local-dot"></span>
+                        <span>You</span>
+                    </div>
+                    <div class="video-placeholder" id="localPlaceholder">
+                        <div class="avatar">📷</div>
+                        <p>Camera off</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call Controls -->
+            <div class="controls">
+                <button class="btn btn-primary" id="startCall">
+                    <span class="btn-icon">📞</span>
+                    Start KYC Call
+                </button>
+                <button class="btn btn-danger" id="endCall" style="display:none;">
+                    <span class="btn-icon">📵</span>
+                    End Call
+                </button>
+
+                <div id="customerLinkBox" style="display:none;">
+                    <p>Customer KYC Link:</p>
+                    <input id="customerLink" type="text" readonly>
+                    <button id="copyLink">Copy Link</button>
+                </div>
+            </div>
+
+            <!-- Incoming Call Banner -->
+            <div class="incoming-call" id="incomingCall" style="display:none;">
+                <div class="incoming-icon">📲</div>
+                <div class="incoming-info">
+                    <h3>Incoming KYC Call</h3>
+                    <p>An agent wants to verify your identity</p>
+                </div>
+                <div class="incoming-actions">
+                    <button class="btn btn-accept" id="acceptCall">
+                        <span>✅</span> Accept
+                    </button>
+                    <button class="btn btn-reject" id="rejectCall">
+                        <span>❌</span> Reject
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
