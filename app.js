@@ -1,30 +1,34 @@
-const SIGNALING_URL = "wss://kyc-video-call-sit.onrender.com";
+const SIGNALING_URL = "wss://kyc-video-call-server.onrender.com";
 
 // --------------------------------
 // ICE Servers (STUN + TURN)
 // --------------------------------
 // STUN alone fails on carrier-grade / symmetric NAT (very common on mobile
 // data). TURN relays media when a direct P2P path can't be found.
-// Below uses OpenRelay's free public TURN (no signup) so this works out of
-// the box. For production, swap in your own TURN credentials
-// (Twilio Network Traversal Service / metered.ca / Cloudflare Calls) since
-// public shared TURN has no uptime/bandwidth guarantees.
+// These are your Metered.ca TURN credentials (500MB/month free trial).
+// Note: this is visible in client-side code to anyone who inspects the
+// page source -- normal for a small app, but be aware it's not secret.
 const ICE_SERVERS = [
-    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun.relay.metered.ca:80" },
     {
-        urls: "turn:openrelay.metered.ca:80",
-        username: "openrelayproject",
-        credential: "openrelayproject"
+        urls: "turn:global.relay.metered.ca:80",
+        username: "0cee67fc19463f44367bd9ed",
+        credential: "s20ksF/FcNxluJ/k"
     },
     {
-        urls: "turn:openrelay.metered.ca:443",
-        username: "openrelayproject",
-        credential: "openrelayproject"
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        username: "0cee67fc19463f44367bd9ed",
+        credential: "s20ksF/FcNxluJ/k"
     },
     {
-        urls: "turn:openrelay.metered.ca:443?transport=tcp",
-        username: "openrelayproject",
-        credential: "openrelayproject"
+        urls: "turn:global.relay.metered.ca:443",
+        username: "0cee67fc19463f44367bd9ed",
+        credential: "s20ksF/FcNxluJ/k"
+    },
+    {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "0cee67fc19463f44367bd9ed",
+        credential: "s20ksF/FcNxluJ/k"
     }
 ];
 
@@ -186,21 +190,27 @@ function createPeerConnection() {
     };
 
     pc.ontrack = (event) => {
-        console.log("REMOTE TRACK RECEIVED:", event);
+        console.log("REMOTE TRACK RECEIVED:", event.track.kind);
         const remoteVideo = document.getElementById("remoteVideo");
-        remoteVideo.srcObject = event.streams[0];
-        hideVideoPlaceholder("remoteVideo", "remotePlaceholder");
 
-        // Some mobile browsers restrict autoplay of unmuted video. Video is
-        // muted by default (see index.html) so autoplay is reliable; offer
-        // an explicit control to enable sound.
-        remoteVideo.play().catch((err) => {
-            console.log("Remote video play() blocked:", err);
-        });
-        const unmuteBtn = document.getElementById("unmuteBtn");
-        if (unmuteBtn) unmuteBtn.style.display = "flex";
+        // Audio and video tracks fire separate ontrack events but share the
+        // same MediaStream. Only (re)assign srcObject the first time, or
+        // every subsequent track aborts the in-flight play() on the prior one.
+        if (remoteVideo.srcObject !== event.streams[0]) {
+            remoteVideo.srcObject = event.streams[0];
+            hideVideoPlaceholder("remoteVideo", "remotePlaceholder");
 
-        console.log("Remote stream attached to video element");
+            // Some mobile browsers restrict autoplay of unmuted video. Video is
+            // muted by default (see index.html) so autoplay is reliable; offer
+            // an explicit control to enable sound.
+            remoteVideo.play().catch((err) => {
+                console.log("Remote video play() blocked:", err);
+            });
+            const unmuteBtn = document.getElementById("unmuteBtn");
+            if (unmuteBtn) unmuteBtn.style.display = "flex";
+
+            console.log("Remote stream attached to video element");
+        }
     };
 
     pc.onicegatheringstatechange = () => {
