@@ -1,4 +1,4 @@
-const SIGNALING_URL = "wss://kyc-video-call-server.onrender.com";
+const SIGNALING_URL = "wss://kyc-video-call-sit.onrender.com";
 
 // --------------------------------
 // ICE Servers (STUN + TURN)
