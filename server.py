@@ -30,6 +30,13 @@ async def is_alive(ws):
         return False
 
 
+async def safe_close(ws):
+    try:
+        await ws.close()
+    except Exception:
+        pass
+
+
 async def safe_send(ws, payload):
     try:
         await ws.send(json.dumps(payload))
@@ -119,16 +126,15 @@ async def handle_client(websocket):
                     }))
                     continue
 
-                if "customer" in call:
-                    # Only reject if the existing customer socket is actually alive.
-                    if await is_alive(call["customer"]):
-                        await websocket.send(json.dumps({
-                            "type": "error", "error": "customer_already_joined", "call_id": call_id
-                        }))
-                        continue
-                    else:
-                        print(f"Evicting stale customer on call: {call_id}")
-                        del call["customer"]
+                if "customer" in call and call["customer"] is not websocket:
+                    # A reconnecting client (e.g. phone tab was backgrounded)
+                    # should be able to reclaim its slot immediately rather
+                    # than waiting to prove the old socket is dead -- on
+                    # mobile, a suspended tab's socket can still answer a
+                    # ping for a while even though the page has already
+                    # moved on and reconnected.
+                    print(f"Replacing existing customer socket on call: {call_id}")
+                    asyncio.create_task(safe_close(call["customer"]))
 
                 call["pending_customer"] = websocket
                 call["ring_started_at"] = time.time()
@@ -158,15 +164,11 @@ async def handle_client(websocket):
                 call = calls[message_call_id]
 
                 if requested_role in call and call[requested_role] is not websocket:
-                    # Allow takeover if the existing socket is actually dead
-                    # (handles reconnects after a silent mobile drop).
-                    if await is_alive(call[requested_role]):
-                        await websocket.send(json.dumps({
-                            "type": "error", "error": "role_already_joined", "call_id": message_call_id
-                        }))
-                        continue
-                    else:
-                        print(f"Evicting stale {requested_role} on call: {message_call_id}")
+                    # Same reasoning as above: trust the new connection and
+                    # take over immediately rather than gating on a liveness
+                    # ping, which can be fooled by a backgrounded mobile tab.
+                    print(f"Replacing existing {requested_role} socket on call: {message_call_id}")
+                    asyncio.create_task(safe_close(call[requested_role]))
 
                 call_id = message_call_id
                 role = requested_role
