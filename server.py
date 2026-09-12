@@ -3,6 +3,8 @@ import json
 import os
 import time
 import websockets
+from websockets.datastructures import Headers
+from websockets.http11 import Response
 
 
 calls = {}
@@ -10,6 +12,19 @@ calls = {}
 RING_TIMEOUT_SECONDS = 45     # how long a customer has to accept/reject
 REAP_INTERVAL_SECONDS = 10    # how often the background sweep runs
 PING_TIMEOUT_SECONDS = 4      # how long we wait for a pong before treating a socket as dead
+
+
+async def health_check(connection, request):
+    """Responds to plain HTTP GET (not a WebSocket upgrade) with 200 OK.
+    Lets a free uptime pinger (UptimeRobot, cron-job.org, etc.) hit this
+    service every few minutes so Render never considers it idle long
+    enough to spin down -- without this, a plain HTTP GET would just fail
+    the WebSocket handshake instead of responding cleanly."""
+    if request.path in ("/", "/healthz"):
+        headers = Headers()
+        headers["Content-Type"] = "text/plain"
+        return Response(200, "OK", headers, b"OK\n")
+    return None  # anything else proceeds to the normal WebSocket handshake
 
 
 def cleanup_call(call_id):
@@ -295,7 +310,7 @@ async def main():
 
     reaper_task = asyncio.create_task(reap_stale_calls())
 
-    async with websockets.serve(handle_client, "0.0.0.0", PORT):
+    async with websockets.serve(handle_client, "0.0.0.0", PORT, process_request=health_check):
         print(f"Signaling server running on port {PORT}")
         await asyncio.Future()
 
