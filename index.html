@@ -35,9 +35,10 @@ body {
 }
 
 .app {
-    min-height: 100dvh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 /* ---------------- Header ---------------- */
@@ -105,18 +106,18 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    gap: 20px;
+    align-items: stretch;
+    padding: 12px;
+    gap: 10px;
 }
 
 .video-grid {
     position: relative;
     width: 100%;
-    max-width: 960px;
-    height: min(62vh, 560px);
+    flex: 1;
+    min-height: 0;
     background: var(--ink);
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
     box-shadow: var(--shadow);
 }
@@ -269,6 +270,7 @@ body {
     gap: 14px;
     width: 100%;
     max-width: 420px;
+    align-self: center;
 }
 
 .btn {
@@ -350,13 +352,13 @@ body {
 .agent-strip {
     display: none;
     width: 100%;
-    max-width: 960px;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     padding: 10px 14px;
     align-items: center;
     gap: 10px;
+    flex-shrink: 0;
 }
 
 .agent-strip.visible { display: flex; }
@@ -507,13 +509,13 @@ body {
 .geo-panel {
     display: none;
     width: 100%;
-    max-width: 960px;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 14px 18px;
+    padding: 10px 18px;
     gap: 16px;
     flex-wrap: wrap;
+    flex-shrink: 0;
 }
 
 .geo-panel.visible {
