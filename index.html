@@ -133,12 +133,12 @@ body {
     display: block;
 }
 
-/* Remote feed fills the whole frame -- this is the primary view */
+/* Default (customer view): remote fills whole frame */
 .remote-card {
     inset: 0;
 }
 
-/* Local camera floats as a picture-in-picture tile, like a real video call */
+/* Default (customer view): local is a small PIP bottom-right */
 .local-card {
     width: 26%;
     max-width: 180px;
@@ -149,6 +149,28 @@ body {
     border: 2px solid rgba(255, 255, 255, 0.85);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
     z-index: 3;
+}
+
+/* Agent layout overrides */
+.agent-layout .remote-card {
+    inset: unset;
+    left: 0;
+    top: 0;
+    width: 33.333%;
+    height: 100%;
+    border-radius: 0;
+    border-right: 2px solid rgba(255, 255, 255, 0.10);
+}
+
+.agent-layout .local-card {
+    width: 22%;
+    max-width: 200px;
+    aspect-ratio: 16 / 9;
+    right: 16px;
+    bottom: 16px;
+    left: unset;
+    top: unset;
+    border-radius: 12px;
 }
 
 .video-label {
@@ -238,7 +260,7 @@ body {
 
 .unmute-btn:hover { background: rgba(16, 21, 31, 0.85); }
 
-/* ---------------- Controls ---------------- */
+/* ---------------- Controls (customer default) ---------------- */
 
 .controls {
     display: flex;
@@ -322,6 +344,56 @@ body {
 }
 
 #copyLink:hover { background: var(--paper); }
+
+/* ---------------- Agent bottom strip ---------------- */
+
+.agent-strip {
+    display: none;
+    width: 100%;
+    max-width: 960px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    align-items: center;
+    gap: 10px;
+}
+
+.agent-strip.visible { display: flex; }
+
+.agent-strip .btn {
+    width: auto;
+    padding: 9px 20px;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.agent-strip .strip-link {
+    flex: 1;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-width: 0;
+    outline: none;
+}
+
+.agent-strip .strip-copy {
+    flex-shrink: 0;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 16px;
+    cursor: pointer;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+.agent-strip .strip-copy:hover { background: var(--accent-wash); border-color: var(--accent); }
 
 /* ---------------- Incoming call sheet ---------------- */
 
@@ -430,6 +502,131 @@ body {
     .incoming-actions { justify-content: center; }
 }
 
+/* ---------------- Geo Location Panel (agent only) ---------------- */
+
+.geo-panel {
+    display: none;
+    width: 100%;
+    max-width: 960px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.geo-panel.visible {
+    display: flex;
+}
+
+.geo-entry {
+    flex: 1;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.geo-entry-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+}
+
+.geo-entry-value {
+    font-size: 13px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.geo-entry-value a {
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.geo-entry-value a:hover { text-decoration: underline; }
+
+.geo-status {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* ---------------- Desktop-only block (agent) ---------------- */
+
+.desktop-only-block {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--paper);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px 24px;
+    gap: 20px;
+}
+
+.desktop-only-block.visible {
+    display: flex;
+}
+
+.desktop-block-icon {
+    font-size: 56px;
+    line-height: 1;
+}
+
+.desktop-block-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 32px 28px;
+    max-width: 380px;
+    width: 100%;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.desktop-block-card h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+}
+
+.desktop-block-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.desktop-block-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--danger-wash);
+    color: var(--danger);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 100px;
+    letter-spacing: 0.02em;
+}
+
 /* ---------------- Accessibility ---------------- */
 
 button:focus-visible,
@@ -468,6 +665,22 @@ input:focus-visible {
         <!-- Main Content -->
         <main class="main">
 
+            <!-- Geo Location Panel (agent only) -->
+            <div class="geo-panel" id="geoPanel">
+                <div class="geo-entry">
+                    <span class="geo-entry-label">📍 Your Location (Agent)</span>
+                    <span class="geo-entry-value" id="agentGeoValue">
+                        <span class="geo-status">Requesting...</span>
+                    </span>
+                </div>
+                <div class="geo-entry">
+                    <span class="geo-entry-label">📍 Customer Location</span>
+                    <span class="geo-entry-value" id="customerGeoValue">
+                        <span class="geo-status">Waiting for customer...</span>
+                    </span>
+                </div>
+            </div>
+
             <!-- Video Grid -->
             <div class="video-grid">
                 <div class="video-card remote-card">
@@ -496,8 +709,8 @@ input:focus-visible {
                 </div>
             </div>
 
-            <!-- Call Controls -->
-            <div class="controls">
+            <!-- Call Controls (customer view) -->
+            <div class="controls" id="customerControls">
                 <button class="btn btn-primary" id="startCall">
                     <span class="btn-icon">📞</span>
                     Start KYC Call
@@ -512,6 +725,18 @@ input:focus-visible {
                     <input id="customerLink" type="text" readonly>
                     <button id="copyLink">Copy Link</button>
                 </div>
+            </div>
+
+            <!-- Agent bottom strip -->
+            <div class="agent-strip" id="agentStrip">
+                <button class="btn btn-primary" id="startCallStrip">
+                    <span class="btn-icon">📞</span> Start KYC Call
+                </button>
+                <button class="btn btn-danger" id="endCallStrip" style="display:none;">
+                    <span class="btn-icon">📵</span> End Call
+                </button>
+                <input class="strip-link" id="stripLink" type="text" readonly placeholder="Customer link will appear here..." style="display:none;">
+                <button class="strip-copy" id="stripCopy" style="display:none;" title="Copy link">📋</button>
             </div>
 
             <!-- Incoming Call Banner -->
@@ -532,6 +757,17 @@ input:focus-visible {
             </div>
 
         </main>
+    </div>
+
+    <!-- Desktop-only block screen (shown to agents on mobile/tablet) -->
+    <div class="desktop-only-block" id="desktopOnlyBlock">
+        <div class="desktop-block-card">
+            <div class="desktop-block-icon">🖥️</div>
+            <div class="desktop-block-badge">⚠️ Desktop Required</div>
+            <h2>Agent Portal</h2>
+            <p>The KYC Agent portal is only available on a desktop or laptop computer.</p>
+            <p>Please open this link on your computer to conduct KYC verification calls.</p>
+        </div>
     </div>
 
     <script src="app.js"></script>

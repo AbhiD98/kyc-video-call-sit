@@ -265,6 +265,20 @@ async def handle_client(websocket):
                 continue
 
             # --------------------------------
+            # GEO LOCATION — relay to the other participant
+            # --------------------------------
+            if message_type == "geo_location":
+                call = calls.get(message_call_id)
+                if not call:
+                    continue
+                sender_role = message.get("role")
+                other_role = "customer" if sender_role == "agent" else "agent"
+                other_client = call.get(other_role)
+                if other_client:
+                    await safe_send(other_client, message)
+                continue
+
+            # --------------------------------
             # OTHER SIGNALING: OFFER / ANSWER / CANDIDATE
             # --------------------------------
             if not call_id:

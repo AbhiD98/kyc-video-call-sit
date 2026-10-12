@@ -1,3 +1,23 @@
+// --------------------------------
+// Agent: Desktop-only enforcement
+// --------------------------------
+(function blockMobileAgents() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("role") !== "agent") return;
+
+    const isMobileOrTablet = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(navigator.userAgent)
+        || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1) // iPad on iOS 13+
+        || window.screen.width < 1024;
+
+    if (isMobileOrTablet) {
+        document.getElementById("desktopOnlyBlock").classList.add("visible");
+        document.querySelector(".app").style.display = "none";
+        document.getElementById("noticeBanner").style.display = "none";
+        // Stop all further script execution for this page
+        throw new Error("Agent access blocked on mobile/tablet device.");
+    }
+})();
+
 const SIGNALING_URL = "wss://kyc-video-call-server.onrender.com";
 
 // --------------------------------
@@ -49,6 +69,13 @@ function generateCallId() {
 
 document.getElementById("role").textContent = role === "agent" ? "🧑‍💼 Agent" : "👤 Customer";
 
+if (role === "agent") {
+    document.querySelector(".video-grid").classList.add("agent-layout");
+    document.getElementById("remoteLabel").textContent = "Customer";
+    document.getElementById("customerControls").style.display = "none";
+    document.getElementById("agentStrip").classList.add("visible");
+}
+
 const statusDot  = document.getElementById("statusDot");
 const statusText = document.getElementById("statusText");
 
@@ -69,14 +96,16 @@ function updateStatusUI(state) {
 }
 
 function showEndCallBtn(show) {
-    const startBtn = document.getElementById("startCall");
-    const endBtn   = document.getElementById("endCall");
-    if (role === "customer") {
+    if (role === "agent") {
+        document.getElementById("startCallStrip").style.display = show ? "none" : "";
+        document.getElementById("endCallStrip").style.display   = show ? "" : "none";
+        document.getElementById("stripLink").style.display      = show ? "" : "none";
+        document.getElementById("stripCopy").style.display      = show ? "" : "none";
+    } else {
+        const startBtn = document.getElementById("startCall");
+        const endBtn   = document.getElementById("endCall");
         startBtn.style.display = "none";
         endBtn.style.display   = show ? "" : "none";
-    } else {
-        startBtn.style.display = show ? "none" : "";
-        endBtn.style.display   = show ? ""     : "none";
     }
 }
 
@@ -303,6 +332,55 @@ async function startCamera() {
 }
 
 // --------------------------------
+// Geolocation
+// --------------------------------
+let myGeoLocation = null;
+
+if (role === "agent") {
+    document.getElementById("geoPanel").classList.add("visible");
+}
+
+function formatGeoValue(lat, lng, accuracy) {
+    const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+    return `${lat.toFixed(5)}, ${lng.toFixed(5)} <span style="color:var(--muted);font-size:11px;">(±${Math.round(accuracy)}m)</span> — <a href="${mapsUrl}" target="_blank" rel="noopener">View on Map</a>`;
+}
+
+async function captureAndShareGeolocation() {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const { latitude, longitude, accuracy } = position.coords;
+            myGeoLocation = { lat: latitude, lng: longitude, accuracy };
+
+            // Show own location if agent
+            if (role === "agent") {
+                document.getElementById("agentGeoValue").innerHTML = formatGeoValue(latitude, longitude, accuracy);
+            }
+
+            // Share with the other participant via signaling server
+            if (callId && socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    type: "geo_location",
+                    call_id: callId,
+                    role,
+                    lat: latitude,
+                    lng: longitude,
+                    accuracy
+                }));
+            }
+        },
+        (err) => {
+            console.log("Geolocation error:", err.message);
+            if (role === "agent") {
+                document.getElementById("agentGeoValue").innerHTML = `<span class="geo-status">Permission denied or unavailable</span>`;
+            }
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+
+// --------------------------------
 // WebSocket connection (with auto-reconnect)
 // --------------------------------
 showEndCallBtn(false);
@@ -394,6 +472,7 @@ async function handleSocketMessage(event) {
         if (message.call_id !== callId) return;
         setCallState("connecting");
         startConnectTimeout();
+        captureAndShareGeolocation();
         try {
             await startCamera();
             await createOffer();
@@ -429,6 +508,14 @@ async function handleSocketMessage(event) {
         return;
     }
 
+    if (message.type === "geo_location") {
+        // Agent receives customer's location (and vice versa, but only agent shows the panel)
+        if (role === "agent" && message.role === "customer") {
+            document.getElementById("customerGeoValue").innerHTML = formatGeoValue(message.lat, message.lng, message.accuracy);
+        }
+        return;
+    }
+
     if (message.type === "hangup") {
         if (message.call_id !== callId) return;
         console.log("Other participant ended the call");
@@ -461,6 +548,7 @@ async function handleSocketMessage(event) {
         callId = message.call_id;
         setCallState("connecting");
         startConnectTimeout();
+        captureAndShareGeolocation();
 
         if (peerConnection) peerConnection.close();
         peerConnection = createPeerConnection();
@@ -506,8 +594,10 @@ function handleServerError(message) {
 // --------------------------------
 // Call Controls
 // --------------------------------
-const startCallButton = document.getElementById("startCall");
-const endCallButton   = document.getElementById("endCall");
+const startCallButton      = document.getElementById("startCall");
+const endCallButton        = document.getElementById("endCall");
+const startCallStripButton = document.getElementById("startCallStrip");
+const endCallStripButton   = document.getElementById("endCallStrip");
 
 document.getElementById("acceptCall").onclick = () => {
     if (!callId) return;
@@ -533,6 +623,12 @@ document.getElementById("copyLink").onclick = async () => {
     showNotice("Customer link copied!", { isError: false });
 };
 
+document.getElementById("stripCopy").onclick = async () => {
+    const stripLink = document.getElementById("stripLink");
+    await navigator.clipboard.writeText(stripLink.value);
+    showNotice("Customer link copied!", { isError: false });
+};
+
 const unmuteBtnEl = document.getElementById("unmuteBtn");
 if (unmuteBtnEl) {
     unmuteBtnEl.onclick = () => {
@@ -543,7 +639,7 @@ if (unmuteBtnEl) {
     };
 }
 
-startCallButton.onclick = async () => {
+function doStartCall() {
     if (callState !== "idle") return;
 
     setCallState("calling");
@@ -551,27 +647,35 @@ startCallButton.onclick = async () => {
 
     const customerUrl = `${window.location.origin}/index.html?role=customer&call_id=${callId}`;
 
+    // populate both the old link box and the strip link
     const customerLinkBox = document.getElementById("customerLinkBox");
     const customerLink    = document.getElementById("customerLink");
     customerLink.value            = customerUrl;
     customerLinkBox.style.display = "block";
+
+    const stripLink = document.getElementById("stripLink");
+    if (stripLink) stripLink.value = customerUrl;
 
     if (peerConnection) peerConnection.close();
     peerConnection = createPeerConnection();
     pendingCandidates = [];
 
     socket.send(JSON.stringify({ type: "call_invitation", call_id: callId }));
-};
+    captureAndShareGeolocation();
+}
 
-endCallButton.onclick = () => {
+function doEndCall() {
     if (callId) {
-        // If we're still just "calling" (no one joined yet), cancel instead
-        // of a hangup so any waiting customer gets a clear message.
         const type = callState === "calling" ? "call_cancelled" : "hangup";
         socket.send(JSON.stringify({ type, call_id: callId }));
     }
     endCall();
-};
+}
+
+startCallButton.onclick    = doStartCall;
+endCallButton.onclick      = doEndCall;
+if (startCallStripButton) startCallStripButton.onclick = doStartCall;
+if (endCallStripButton)   endCallStripButton.onclick   = doEndCall;
 
 function endCall() {
     clearConnectTimeout();
@@ -591,6 +695,12 @@ function endCall() {
     hideVideoPlaceholder("localVideo",  "localPlaceholder");
     hideVideoPlaceholder("remoteVideo", "remotePlaceholder");
     if (unmuteBtnEl) unmuteBtnEl.style.display = "none";
+
+    // Reset geo panel
+    if (role === "agent") {
+        document.getElementById("agentGeoValue").innerHTML = `<span class="geo-status">Requesting...</span>`;
+        document.getElementById("customerGeoValue").innerHTML = `<span class="geo-status">Waiting for customer...</span>`;
+    }
 
     setCallState("idle");
     callId = null;
