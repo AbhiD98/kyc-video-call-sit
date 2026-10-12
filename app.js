@@ -305,6 +305,8 @@ function describeMediaError(err) {
     }
 }
 
+let currentFacingMode = "user";
+
 async function startCamera() {
     console.log("Requesting camera and microphone...");
     try {
@@ -329,6 +331,32 @@ async function startCamera() {
     localStream.getTracks().forEach((track) => {
         peerConnection.addTrack(track, localStream);
     });
+}
+
+async function handleFlipCamera() {
+    currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
+    let newStream;
+    try {
+        newStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: currentFacingMode },
+            audio: true
+        });
+    } catch (err) {
+        console.log("Flip camera failed:", err);
+        currentFacingMode = currentFacingMode === "user" ? "environment" : "user"; // revert
+        return;
+    }
+
+    const newVideoTrack = newStream.getVideoTracks()[0];
+    const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === "video");
+    if (sender) await sender.replaceTrack(newVideoTrack);
+
+    // stop old tracks and swap local stream
+    localStream.getTracks().forEach(t => t.stop());
+    localStream = newStream;
+
+    const localVideo = document.getElementById("localVideo");
+    localVideo.srcObject = localStream;
 }
 
 // --------------------------------
@@ -516,6 +544,11 @@ async function handleSocketMessage(event) {
         return;
     }
 
+    if (message.type === "flip_camera") {
+        if (role === "customer") await handleFlipCamera();
+        return;
+    }
+
     if (message.type === "hangup") {
         if (message.call_id !== callId) return;
         console.log("Other participant ended the call");
@@ -590,6 +623,37 @@ function handleServerError(message) {
         setCallState("idle");
     }
 }
+
+// --------------------------------
+// Capture Photo (agent captures customer's frame)
+// --------------------------------
+document.getElementById("capturePhotoBtn").onclick = () => {
+    const video = document.getElementById("remoteVideo");
+    if (!video.srcObject) {
+        showNotice("No customer video to capture yet.", { isError: false });
+        return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 480;
+    canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+    const a = document.createElement("a");
+    a.href     = canvas.toDataURL("image/png");
+    a.download = `kyc-capture-${Date.now()}.png`;
+    a.click();
+    showNotice("Photo captured and downloaded.", { isError: false });
+};
+
+// --------------------------------
+// Flip Camera (agent requests customer to switch camera)
+// --------------------------------
+document.getElementById("flipCameraBtn").onclick = () => {
+    if (!callId || callState !== "connected") {
+        showNotice("Call must be connected to flip camera.", { isError: false });
+        return;
+    }
+    socket.send(JSON.stringify({ type: "flip_camera", call_id: callId }));
+};
 
 // --------------------------------
 // Call Controls

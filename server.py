@@ -265,6 +265,18 @@ async def handle_client(websocket):
                 continue
 
             # --------------------------------
+            # FLIP CAMERA — relay to customer
+            # --------------------------------
+            if message_type == "flip_camera":
+                call = calls.get(message_call_id)
+                if not call:
+                    continue
+                customer = call.get("customer")
+                if customer:
+                    await safe_send(customer, message)
+                continue
+
+            # --------------------------------
             # GEO LOCATION — relay to the other participant
             # --------------------------------
             if message_type == "geo_location":

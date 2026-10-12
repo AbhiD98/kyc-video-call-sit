@@ -562,6 +562,42 @@ body {
     font-style: italic;
 }
 
+/* ---------------- Capture / Flip buttons (agent only, on customer panel) ---------------- */
+
+.remote-actions {
+    display: none;
+    position: absolute;
+    bottom: 14px;
+    left: 8px;
+    z-index: 5;
+    flex-direction: column;
+    gap: 8px;
+    width: calc(33.333% - 16px);
+}
+
+.agent-layout .remote-actions { display: flex; }
+
+.remote-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(16, 21, 31, 0.72);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: background 0.15s;
+    width: 100%;
+}
+
+.remote-action-btn:hover { background: rgba(16, 21, 31, 0.92); }
+.remote-action-btn:active { transform: scale(0.97); }
+
 /* ---------------- Desktop-only block (agent) ---------------- */
 
 .desktop-only-block {
@@ -696,6 +732,12 @@ input:focus-visible {
                         <p>Waiting for connection...</p>
                     </div>
                     <button class="unmute-btn" id="unmuteBtn">🔊 Enable Sound</button>
+                </div>
+
+                <!-- Capture / Flip buttons — agent only, overlaid on customer video -->
+                <div class="remote-actions">
+                    <button class="remote-action-btn" id="capturePhotoBtn">📸 Capture Photo</button>
+                    <button class="remote-action-btn" id="flipCameraBtn">🔄 Flip Camera</button>
                 </div>
 
                 <div class="video-card local-card">
