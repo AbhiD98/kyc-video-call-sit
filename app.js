@@ -70,10 +70,11 @@ function generateCallId() {
 document.getElementById("role").textContent = role === "agent" ? "🧑‍💼 Agent" : "👤 Customer";
 
 if (role === "agent") {
-    document.querySelector(".video-grid").classList.add("agent-layout");
+    document.getElementById("videoGrid").classList.add("agent-layout");
     document.getElementById("remoteLabel").textContent = "Customer";
     document.getElementById("customerControls").style.display = "none";
     document.getElementById("agentStrip").classList.add("visible");
+    document.getElementById("headerCenter").classList.add("visible");
 }
 
 const statusDot  = document.getElementById("statusDot");

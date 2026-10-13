@@ -3,724 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KYC Video Call</title>
+    <title>KYC Verify</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-:root {
-    --ink: #10151F;
-    --muted: #5B6472;
-    --paper: #F6F7F9;
-    --panel: #FFFFFF;
-    --line: #E2E5EA;
-    --accent: #0E7C6B;
-    --accent-ink: #0A5F52;
-    --accent-wash: #E6F2EF;
-    --danger: #C4432B;
-    --danger-wash: #FBEAE5;
-    --radius: 10px;
-    --shadow: 0 8px 24px rgba(16, 21, 31, 0.10);
-}
-
-* { box-sizing: border-box; }
-
-html, body {
-    height: 100%;
-    margin: 0;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    -webkit-font-smoothing: antialiased;
-}
-
-.app {
-    height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-/* ---------------- Header ---------------- */
-
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--line);
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.brand-icon {
-    font-size: 20px;
-    line-height: 1;
-}
-
-.brand-name {
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.role-badge {
-    font-size: 13px;
-    color: var(--muted);
-    padding: 4px 10px;
-    border: 1px solid var(--line);
-    border-radius: 100px;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--muted);
-    flex-shrink: 0;
-}
-
-.status-dot.connected { background: var(--accent); }
-.status-dot.ended { background: var(--danger); }
-
-.status-text {
-    font-size: 13px;
-    color: var(--muted);
-    min-width: 76px;
-}
-
-/* ---------------- Main / Video area ---------------- */
-
-.main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 12px;
-    gap: 10px;
-}
-
-.video-grid {
-    position: relative;
-    width: 100%;
-    flex: 1;
-    min-height: 0;
-    background: var(--ink);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-}
-
-.video-card {
-    position: absolute;
-    background: #1B222E;
-}
-
-.video-card video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-/* Default (customer view): remote fills whole frame */
-.remote-card {
-    inset: 0;
-}
-
-/* Default (customer view): local is a small PIP bottom-right */
-.local-card {
-    width: 26%;
-    max-width: 180px;
-    aspect-ratio: 3 / 4;
-    right: 16px;
-    bottom: 16px;
-    border-radius: 12px;
-    border: 2px solid rgba(255, 255, 255, 0.85);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-    z-index: 3;
-}
-
-/* Agent layout overrides */
-.agent-layout .remote-card {
-    inset: unset;
-    left: 0;
-    top: 0;
-    width: 33.333%;
-    height: 100%;
-    border-radius: 0;
-    border-right: 2px solid rgba(255, 255, 255, 0.10);
-}
-
-.agent-layout .local-card {
-    width: 22%;
-    max-width: 200px;
-    aspect-ratio: 16 / 9;
-    right: 16px;
-    bottom: 16px;
-    left: unset;
-    top: unset;
-    border-radius: 12px;
-}
-
-.video-label {
-    position: absolute;
-    left: 10px;
-    top: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 9px;
-    background: rgba(16, 21, 31, 0.55);
-    border-radius: 100px;
-    font-size: 12px;
-    color: #fff;
-    z-index: 2;
-}
-
-.local-card .video-label {
-    font-size: 11px;
-    padding: 3px 7px;
-}
-
-.label-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-}
-
-.remote-dot { background: #8FA3B0; }
-.local-dot  { background: var(--accent); }
-
-.video-placeholder {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: #C7CDD6;
-    text-align: center;
-    padding: 12px;
-}
-
-.video-placeholder .avatar {
-    font-size: 30px;
-    width: 56px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 50%;
-}
-
-.video-placeholder p {
-    margin: 0;
-    font-size: 13px;
-}
-
-.local-card .video-placeholder .avatar {
-    font-size: 18px;
-    width: 34px;
-    height: 34px;
-}
-
-.local-card .video-placeholder p {
-    font-size: 11px;
-}
-
-.unmute-btn {
-    display: none;
-    align-items: center;
-    gap: 6px;
-    position: absolute;
-    bottom: 16px;
-    left: 16px;
-    z-index: 4;
-    background: rgba(16, 21, 31, 0.7);
-    color: #fff;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 100px;
-    cursor: pointer;
-    font-size: 13px;
-}
-
-.unmute-btn:hover { background: rgba(16, 21, 31, 0.85); }
-
-/* ---------------- Controls (customer default) ---------------- */
-
-.controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    width: 100%;
-    max-width: 420px;
-    align-self: center;
-}
-
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: none;
-    border-radius: 100px;
-    padding: 13px 26px;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.15s ease, transform 0.05s ease;
-    width: 100%;
-}
-
-.btn:active { transform: scale(0.98); }
-
-.btn-icon { font-size: 16px; line-height: 1; }
-
-.btn-primary {
-    background: var(--accent);
-    color: #fff;
-}
-.btn-primary:hover { background: var(--accent-ink); }
-
-.btn-danger {
-    background: var(--danger);
-    color: #fff;
-}
-.btn-danger:hover { background: #A6371F; }
-
-#customerLinkBox {
-    width: 100%;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 14px;
-}
-
-#customerLinkBox p {
-    margin: 0 0 8px;
-    font-size: 13px;
-    color: var(--muted);
-}
-
-#customerLinkBox > div,
-#customerLink {
-    width: 100%;
-}
-
-#customerLink {
-    display: block;
-    font-size: 13px;
-    color: var(--ink);
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-}
-
-#copyLink {
-    width: 100%;
-    border: 1px solid var(--line);
-    background: var(--panel);
-    color: var(--ink);
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-#copyLink:hover { background: var(--paper); }
-
-/* ---------------- Agent bottom strip ---------------- */
-
-.agent-strip {
-    display: none;
-    width: 100%;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 10px 14px;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-.agent-strip.visible { display: flex; }
-
-.agent-strip .btn {
-    width: auto;
-    padding: 9px 20px;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.agent-strip .strip-link {
-    flex: 1;
-    font-size: 13px;
-    color: var(--ink);
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 8px 12px;
-    min-width: 0;
-    outline: none;
-}
-
-.agent-strip .strip-copy {
-    flex-shrink: 0;
-    background: var(--paper);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 16px;
-    cursor: pointer;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-}
-
-.agent-strip .strip-copy:hover { background: var(--accent-wash); border-color: var(--accent); }
-
-/* ---------------- Incoming call sheet ---------------- */
-
-.incoming-call {
-    position: fixed;
-    left: 16px;
-    right: 16px;
-    bottom: 16px;
-    max-width: 420px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 16px;
-    box-shadow: var(--shadow);
-    z-index: 200;
-}
-
-.incoming-icon {
-    font-size: 24px;
-    flex-shrink: 0;
-}
-
-.incoming-info { flex: 1; min-width: 0; }
-
-.incoming-info h3 {
-    margin: 0 0 2px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.incoming-info p {
-    margin: 0;
-    font-size: 12px;
-    color: var(--muted);
-}
-
-.incoming-actions {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.incoming-actions .btn {
-    width: auto;
-    padding: 10px 14px;
-    font-size: 13px;
-}
-
-.btn-accept {
-    background: var(--accent-wash);
-    color: var(--accent-ink);
-}
-.btn-accept:hover { background: #D7ECE7; }
-
-.btn-reject {
-    background: var(--danger-wash);
-    color: var(--danger);
-}
-.btn-reject:hover { background: #F5DAD1; }
-
-/* ---------------- Notice banner ---------------- */
-
-.notice-banner {
-    display: none;
-    align-items: center;
-    gap: 12px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    padding: 12px 20px;
-    font-size: 13px;
-    color: #fff;
-}
-
-.notice-error { background: var(--danger); }
-.notice-info  { background: var(--ink); }
-
-.notice-banner span { flex: 1; }
-
-.notice-banner button {
-    background: rgba(255, 255, 255, 0.18);
-    border: none;
-    color: #fff;
-    padding: 5px 12px;
-    border-radius: 100px;
-    cursor: pointer;
-    font-size: 12px;
-}
-.notice-banner button:hover { background: rgba(255, 255, 255, 0.28); }
-
-/* ---------------- Responsive ---------------- */
-
-@media (max-width: 640px) {
-    .header { padding: 12px 16px; }
-    .brand-name { font-size: 15px; }
-    .main { padding: 16px; gap: 16px; }
-    .video-grid { height: 68dvh; border-radius: 12px; }
-    .local-card { width: 34%; max-width: 130px; right: 10px; bottom: 10px; }
-    .incoming-call { flex-direction: column; align-items: stretch; text-align: center; }
-    .incoming-actions { justify-content: center; }
-}
-
-/* ---------------- Geo Location Panel (agent only) ---------------- */
-
-.geo-panel {
-    display: none;
-    width: 100%;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 10px 18px;
-    gap: 16px;
-    flex-wrap: wrap;
-    flex-shrink: 0;
-}
-
-.geo-panel.visible {
-    display: flex;
-}
-
-.geo-entry {
-    flex: 1;
-    min-width: 220px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.geo-entry-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-}
-
-.geo-entry-value {
-    font-size: 13px;
-    color: var(--ink);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.geo-entry-value a {
-    font-size: 12px;
-    color: var(--accent);
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-.geo-entry-value a:hover { text-decoration: underline; }
-
-.geo-status {
-    font-size: 12px;
-    color: var(--muted);
-    font-style: italic;
-}
-
-/* ---------------- Capture / Flip buttons (agent only, on customer panel) ---------------- */
-
-.remote-actions {
-    display: none;
-    position: absolute;
-    bottom: 14px;
-    left: 8px;
-    z-index: 5;
-    flex-direction: column;
-    gap: 8px;
-    width: calc(33.333% - 16px);
-}
-
-.agent-layout .remote-actions { display: flex; }
-
-.remote-action-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: rgba(16, 21, 31, 0.72);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    backdrop-filter: blur(4px);
-    transition: background 0.15s;
-    width: 100%;
-}
-
-.remote-action-btn:hover { background: rgba(16, 21, 31, 0.92); }
-.remote-action-btn:active { transform: scale(0.97); }
-
-/* ---------------- Desktop-only block (agent) ---------------- */
-
-.desktop-only-block {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: var(--paper);
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 32px 24px;
-    gap: 20px;
-}
-
-.desktop-only-block.visible {
-    display: flex;
-}
-
-.desktop-block-icon {
-    font-size: 56px;
-    line-height: 1;
-}
-
-.desktop-block-card {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 32px 28px;
-    max-width: 380px;
-    width: 100%;
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-}
-
-.desktop-block-card h2 {
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--ink);
-    letter-spacing: -0.02em;
-}
-
-.desktop-block-card p {
-    margin: 0;
-    font-size: 14px;
-    color: var(--muted);
-    line-height: 1.6;
-}
-
-.desktop-block-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--danger-wash);
-    color: var(--danger);
-    font-size: 12px;
-    font-weight: 600;
-    padding: 5px 12px;
-    border-radius: 100px;
-    letter-spacing: 0.02em;
-}
-
-/* ---------------- Accessibility ---------------- */
-
-button:focus-visible,
-input:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .btn { transition: none; }
-}
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #F0F4FF; color: #111827; -webkit-font-smoothing: antialiased; }
+        .app { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* ── NOTICE BANNER ── */
+        .notice-banner { display: none; align-items: center; gap: 12px; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 11px 24px; font-size: 13px; font-weight: 500; color: #fff; }
+        .notice-error { background: #EF4444; }
+        .notice-info  { background: #1D4ED8; }
+        .notice-banner span { flex: 1; }
+        .notice-banner button { background: rgba(255,255,255,0.18); border: none; color: #fff; padding: 5px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit; }
+        .notice-banner button:hover { background: rgba(255,255,255,0.28); }
+
+        /* ── HEADER ── */
+        .header { height: 62px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1.5px solid #E5EAFF; flex-shrink: 0; }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg,#2563EB,#1D4ED8); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; box-shadow: 0 2px 8px rgba(37,99,235,0.35); flex-shrink: 0; }
+        .brand-name { font-size: 17px; font-weight: 800; color: #111827; letter-spacing: -0.5px; }
+        .brand-name span { color: #2563EB; }
+        .header-center { display: none; align-items: center; gap: 6px; background: #F0F4FF; border: 1.5px solid #DBEAFE; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: #1D4ED8; }
+        .header-center.visible { display: flex; }
+        .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 0 2.5px rgba(34,197,94,0.22); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{box-shadow:0 0 0 2.5px rgba(34,197,94,0.22);}50%{box-shadow:0 0 0 5px rgba(34,197,94,0.10);} }
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        .role-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 5px 13px; border-radius: 100px; background: #EFF6FF; color: #1D4ED8; border: 1.5px solid #BFDBFE; }
+        .status-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 5px 13px; border-radius: 100px; background: #F9FAFB; color: #6B7280; border: 1.5px solid #E5E7EB; }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #9CA3AF; flex-shrink: 0; }
+        .status-dot.connected { background: #22C55E; box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
+        .status-dot.ended { background: #EF4444; }
+        .status-text { font-size: 12px; font-weight: 500; color: #6B7280; }
+
+        /* ── GEO BAR ── */
+        .geo-panel { display: none; align-items: stretch; background: #fff; border-bottom: 1.5px solid #E5EAFF; padding: 0 28px; height: 50px; flex-shrink: 0; }
+        .geo-panel.visible { display: flex; }
+        .geo-entry { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .geo-entry + .geo-entry { border-left: 1.5px solid #E5EAFF; padding-left: 28px; margin-left: 28px; }
+        .geo-icon-wrap { width: 28px; height: 28px; border-radius: 7px; background: #EFF6FF; border: 1.5px solid #BFDBFE; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+        .geo-texts { display: flex; flex-direction: column; gap: 1px; }
+        .geo-entry-label { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: #9CA3AF; }
+        .geo-entry-value { font-size: 12px; font-weight: 500; color: #374151; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+        .geo-entry-value a { font-size: 11px; font-weight: 600; color: #2563EB; text-decoration: none; margin-left: 4px; }
+        .geo-entry-value a:hover { text-decoration: underline; }
+        .geo-status { font-size: 11px; color: #9CA3AF; font-style: italic; }
+
+        /* ── MAIN ── */
+        .main { flex: 1; display: flex; flex-direction: column; padding: 14px; gap: 10px; min-height: 0; background: #F0F4FF; }
+
+        /* ── VIDEO GRID ── */
+        .video-grid { position: relative; width: 100%; flex: 1; min-height: 0; background: #F0F6FF; border-radius: 14px; overflow: hidden; border: 1.5px solid #DBEAFE; box-shadow: 0 4px 20px rgba(37,99,235,0.08); }
+        .video-card { position: absolute; background: #F0F6FF; }
+        .video-card video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* Customer view: remote fills whole frame */
+        .remote-card { inset: 0; }
+
+        /* Customer view: local PIP bottom-right */
+        .local-card { width: 26%; max-width: 180px; aspect-ratio: 3/4; right: 16px; bottom: 16px; border-radius: 12px; border: 2px solid #BFDBFE; box-shadow: 0 4px 20px rgba(37,99,235,0.14); z-index: 3; }
+
+        /* Agent layout */
+        .agent-layout { background: #fff; }
+        .agent-layout .remote-card { inset: unset; left: 0; top: 0; width: 33.333%; height: 100%; border-radius: 0; border-right: 1.5px solid #DBEAFE; background: #F0F6FF; }
+        .agent-layout .local-card { width: 22%; max-width: 200px; aspect-ratio: 16/9; right: 16px; bottom: 16px; left: unset; top: unset; border-radius: 10px; border: 2px solid #BFDBFE; box-shadow: 0 4px 20px rgba(37,99,235,0.14); }
+
+        /* Agent workspace right 2/3 */
+        .agent-workspace { display: none; position: absolute; left: 33.333%; top: 0; right: 0; bottom: 0; background: #F8FAFF; align-items: center; justify-content: center; }
+        .agent-layout .agent-workspace { display: flex; }
+        .ws-card { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 28px 36px; background: #F0F4FF; border: 1.5px dashed #BFDBFE; border-radius: 14px; text-align: center; }
+        .ws-icon { width: 56px; height: 56px; border-radius: 14px; background: #EFF6FF; border: 1.5px solid #BFDBFE; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .ws-title { font-size: 14px; font-weight: 700; color: #1E3A8A; }
+        .ws-sub { font-size: 12px; color: #93C5FD; line-height: 1.5; }
+
+        /* Video labels */
+        .video-label { position: absolute; left: 10px; top: 10px; display: flex; align-items: center; gap: 5px; background: #EFF6FF; border: 1.5px solid #BFDBFE; border-radius: 6px; padding: 4px 9px; font-size: 11px; font-weight: 600; color: #1D4ED8; z-index: 5; letter-spacing: 0.02em; }
+        .local-card .video-label { font-size: 10px; padding: 3px 7px; top: 6px; left: 6px; }
+        .label-dot { width: 6px; height: 6px; border-radius: 50%; }
+        .remote-dot { background: #3B82F6; }
+        .local-dot  { background: #22C55E; }
+
+        /* Video placeholder */
+        .video-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 12px; }
+        .video-placeholder .avatar { width: 56px; height: 56px; border-radius: 50%; background: #DBEAFE; border: 1.5px solid #BFDBFE; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .video-placeholder p { margin: 0; font-size: 12px; font-weight: 500; color: #93C5FD; }
+        .local-card .video-placeholder .avatar { width: 32px; height: 32px; font-size: 14px; }
+        .local-card .video-placeholder p { font-size: 10px; }
+
+        /* Unmute button */
+        .unmute-btn { display: none; align-items: center; gap: 6px; position: absolute; bottom: 16px; left: 16px; z-index: 4; background: #EFF6FF; color: #1D4ED8; border: 1.5px solid #BFDBFE; padding: 8px 14px; border-radius: 100px; cursor: pointer; font-size: 12px; font-weight: 600; font-family: inherit; }
+        .unmute-btn:hover { background: #DBEAFE; }
+
+        /* Capture / Flip buttons */
+        .remote-actions { display: none; position: absolute; bottom: 14px; left: 10px; right: 10px; flex-direction: column; gap: 7px; z-index: 6; }
+        .agent-layout .remote-actions { display: flex; }
+        .remote-action-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 14px; background: #EFF6FF; border: 1.5px solid #BFDBFE; border-radius: 8px; color: #1D4ED8; font-size: 12px; font-weight: 600; cursor: pointer; letter-spacing: 0.01em; transition: background 0.15s, border-color 0.15s; font-family: inherit; }
+        .remote-action-btn:hover { background: #DBEAFE; border-color: #93C5FD; }
+        .remote-action-btn:active { transform: scale(0.97); }
+
+        /* ── CONTROLS (customer) ── */
+        .controls { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; max-width: 420px; align-self: center; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: none; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; cursor: pointer; letter-spacing: 0.01em; font-family: inherit; transition: filter 0.15s, transform 0.05s; width: 100%; }
+        .btn:active { transform: scale(0.97); }
+        .btn-icon { font-size: 14px; line-height: 1; }
+        .btn-primary { background: linear-gradient(135deg,#2563EB,#1D4ED8); color: #fff; box-shadow: 0 2px 8px rgba(37,99,235,0.35); }
+        .btn-primary:hover { filter: brightness(1.08); }
+        .btn-danger { background: linear-gradient(135deg,#EF4444,#DC2626); color: #fff; box-shadow: 0 2px 8px rgba(239,68,68,0.30); }
+        .btn-danger:hover { filter: brightness(1.08); }
+        #customerLinkBox { width: 100%; background: #fff; border: 1.5px solid #DBEAFE; border-radius: 10px; padding: 14px; }
+        #customerLinkBox p { margin: 0 0 8px; font-size: 12px; color: #6B7280; font-weight: 500; }
+        #customerLink { display: block; width: 100%; font-size: 12px; color: #374151; background: #F8FAFF; border: 1.5px solid #DBEAFE; border-radius: 7px; padding: 9px 12px; margin-bottom: 10px; font-family: "SF Mono","Fira Code",monospace; outline: none; }
+        #copyLink { width: 100%; border: 1.5px solid #DBEAFE; background: #F8FAFF; color: #1D4ED8; border-radius: 7px; padding: 9px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+        #copyLink:hover { background: #EFF6FF; }
+
+        /* ── AGENT STRIP ── */
+        .agent-strip { display: none; width: 100%; background: #fff; border: 1.5px solid #DBEAFE; border-radius: 12px; padding: 10px 14px; align-items: center; gap: 10px; flex-shrink: 0; box-shadow: 0 1px 4px rgba(37,99,235,0.06); }
+        .agent-strip.visible { display: flex; }
+        .agent-strip .btn { width: auto; flex-shrink: 0; }
+        .agent-strip .strip-link { flex: 1; min-width: 0; padding: 9px 13px; background: #F8FAFF; border: 1.5px solid #DBEAFE; border-radius: 8px; font-size: 12px; font-family: "SF Mono","Fira Code",monospace; color: #374151; outline: none; }
+        .agent-strip .strip-copy { flex-shrink: 0; padding: 9px 13px; background: #F8FAFF; border: 1.5px solid #DBEAFE; border-radius: 8px; font-size: 15px; cursor: pointer; color: #93C5FD; display: flex; align-items: center; transition: all 0.15s; }
+        .agent-strip .strip-copy:hover { background: #EFF6FF; border-color: #93C5FD; color: #2563EB; }
+
+        /* ── INCOMING CALL ── */
+        .incoming-call { position: fixed; left: 16px; right: 16px; bottom: 16px; max-width: 440px; margin: 0 auto; display: flex; align-items: center; gap: 14px; background: #fff; border: 1.5px solid #DBEAFE; border-radius: 16px; padding: 18px; box-shadow: 0 12px 40px rgba(37,99,235,0.14); z-index: 200; }
+        .incoming-icon-wrap { width: 46px; height: 46px; border-radius: 12px; background: #EFF6FF; border: 1.5px solid #BFDBFE; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .incoming-info { flex: 1; min-width: 0; }
+        .incoming-info h3 { margin: 0 0 3px; font-size: 14px; font-weight: 700; color: #111827; }
+        .incoming-info p { margin: 0; font-size: 12px; color: #6B7280; }
+        .incoming-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .incoming-actions .btn { width: auto; padding: 8px 16px; font-size: 12px; }
+        .btn-accept { background: #F0FDF4; color: #15803D; border: 1.5px solid #BBF7D0; }
+        .btn-accept:hover { background: #DCFCE7; }
+        .btn-reject { background: #FFF1F2; color: #E11D48; border: 1.5px solid #FECDD3; }
+        .btn-reject:hover { background: #FFE4E6; }
+
+        /* ── DESKTOP BLOCK ── */
+        .desktop-only-block { display: none; position: fixed; inset: 0; z-index: 9999; background: #F0F4FF; flex-direction: column; align-items: center; justify-content: center; }
+        .desktop-only-block.visible { display: flex; }
+        .desktop-block-card { background: #fff; border: 1.5px solid #DBEAFE; border-radius: 18px; padding: 40px 36px; max-width: 400px; width: 100%; box-shadow: 0 8px 32px rgba(37,99,235,0.10); display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+        .desktop-block-icon { width: 68px; height: 68px; border-radius: 18px; background: #EFF6FF; border: 1.5px solid #BFDBFE; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+        .desktop-block-badge { background: #FFF1F2; color: #E11D48; border: 1.5px solid #FECDD3; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
+        .desktop-block-card h2 { font-size: 20px; font-weight: 800; color: #111827; letter-spacing: -0.4px; }
+        .desktop-block-card p { font-size: 13px; color: #6B7280; line-height: 1.65; }
+
+        /* ── ACCESSIBILITY ── */
+        button:focus-visible, input:focus-visible { outline: 2px solid #2563EB; outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) { .btn, .remote-action-btn { transition: none; } }
+        @media (max-width: 640px) {
+            .header { padding: 0 16px; }
+            .header-center { display: none !important; }
+            .main { padding: 10px; gap: 8px; }
+            .local-card { width: 34%; max-width: 130px; right: 10px; bottom: 10px; }
+            .incoming-call { flex-direction: column; align-items: stretch; text-align: center; }
+            .incoming-actions { justify-content: center; }
+        }
     </style>
 </head>
 <body>
+    <!-- Notice Banner -->
     <div class="notice-banner" id="noticeBanner">
         <span id="noticeText"></span>
         <button id="noticeRetryBtn" style="display:none;">Retry</button>
         <button id="noticeCloseBtn">✕</button>
     </div>
-    <div class="app">
 
+    <div class="app">
         <!-- Header -->
         <header class="header">
             <div class="brand">
                 <div class="brand-icon">🔐</div>
-                <span class="brand-name">KYC Verify</span>
+                <span class="brand-name">KYC <span>Verify</span></span>
+            </div>
+            <div class="header-center" id="headerCenter">
+                <div class="live-dot"></div>
+                <span id="callStatusLabel">Ready</span>
             </div>
             <div class="header-right">
                 <span class="role-badge" id="role"></span>
-                <div class="status-dot" id="statusDot"></div>
-                <span class="status-text" id="statusText">Connecting...</span>
+                <div class="status-pill">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Connecting...</span>
+                </div>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main class="main">
-
-            <!-- Geo Location Panel (agent only) -->
-            <div class="geo-panel" id="geoPanel">
-                <div class="geo-entry">
-                    <span class="geo-entry-label">📍 Your Location (Agent)</span>
-                    <span class="geo-entry-value" id="agentGeoValue">
-                        <span class="geo-status">Requesting...</span>
-                    </span>
-                </div>
-                <div class="geo-entry">
-                    <span class="geo-entry-label">📍 Customer Location</span>
-                    <span class="geo-entry-value" id="customerGeoValue">
-                        <span class="geo-status">Waiting for customer...</span>
-                    </span>
+        <!-- Geo Bar (agent only) -->
+        <div class="geo-panel" id="geoPanel">
+            <div class="geo-entry">
+                <div class="geo-icon-wrap">📍</div>
+                <div class="geo-texts">
+                    <span class="geo-entry-label">Your Location (Agent)</span>
+                    <span class="geo-entry-value" id="agentGeoValue"><span class="geo-status">Requesting...</span></span>
                 </div>
             </div>
+            <div class="geo-entry">
+                <div class="geo-icon-wrap">📍</div>
+                <div class="geo-texts">
+                    <span class="geo-entry-label">Customer Location</span>
+                    <span class="geo-entry-value" id="customerGeoValue"><span class="geo-status">Waiting for customer...</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <main class="main">
 
             <!-- Video Grid -->
-            <div class="video-grid">
+            <div class="video-grid" id="videoGrid">
+
+                <!-- Remote card (customer video) -->
                 <div class="video-card remote-card">
                     <video id="remoteVideo" autoplay playsinline muted></video>
                     <div class="video-label">
@@ -732,14 +224,23 @@ input:focus-visible {
                         <p>Waiting for connection...</p>
                     </div>
                     <button class="unmute-btn" id="unmuteBtn">🔊 Enable Sound</button>
+                    <!-- Capture / Flip — inside remote card, contained within customer panel -->
+                    <div class="remote-actions">
+                        <button class="remote-action-btn" id="capturePhotoBtn">📸 Capture Photo</button>
+                        <button class="remote-action-btn" id="flipCameraBtn">🔄 Flip Camera</button>
+                    </div>
                 </div>
 
-                <!-- Capture / Flip buttons — agent only, overlaid on customer video -->
-                <div class="remote-actions">
-                    <button class="remote-action-btn" id="capturePhotoBtn">📸 Capture Photo</button>
-                    <button class="remote-action-btn" id="flipCameraBtn">🔄 Flip Camera</button>
+                <!-- Agent workspace right 2/3 -->
+                <div class="agent-workspace">
+                    <div class="ws-card">
+                        <div class="ws-icon">🖥️</div>
+                        <span class="ws-title">Agent Workspace</span>
+                        <span class="ws-sub">Customer camera visible on the left.<br>Call connected and active.</span>
+                    </div>
                 </div>
 
+                <!-- Local card (agent/customer self view) -->
                 <div class="video-card local-card">
                     <video id="localVideo" autoplay playsinline muted></video>
                     <div class="video-label">
@@ -751,19 +252,13 @@ input:focus-visible {
                         <p>Camera off</p>
                     </div>
                 </div>
+
             </div>
 
-            <!-- Call Controls (customer view) -->
+            <!-- Customer controls -->
             <div class="controls" id="customerControls">
-                <button class="btn btn-primary" id="startCall">
-                    <span class="btn-icon">📞</span>
-                    Start KYC Call
-                </button>
-                <button class="btn btn-danger" id="endCall" style="display:none;">
-                    <span class="btn-icon">📵</span>
-                    End Call
-                </button>
-
+                <button class="btn btn-primary" id="startCall"><span class="btn-icon">📞</span> Start KYC Call</button>
+                <button class="btn btn-danger" id="endCall" style="display:none;"><span class="btn-icon">📵</span> End Call</button>
                 <div id="customerLinkBox" style="display:none;">
                     <p>Customer KYC Link:</p>
                     <input id="customerLink" type="text" readonly>
@@ -771,43 +266,35 @@ input:focus-visible {
                 </div>
             </div>
 
-            <!-- Agent bottom strip -->
+            <!-- Agent strip -->
             <div class="agent-strip" id="agentStrip">
-                <button class="btn btn-primary" id="startCallStrip">
-                    <span class="btn-icon">📞</span> Start KYC Call
-                </button>
-                <button class="btn btn-danger" id="endCallStrip" style="display:none;">
-                    <span class="btn-icon">📵</span> End Call
-                </button>
+                <button class="btn btn-primary" id="startCallStrip"><span class="btn-icon">📞</span> Start KYC Call</button>
+                <button class="btn btn-danger" id="endCallStrip" style="display:none;"><span class="btn-icon">📵</span> End Call</button>
                 <input class="strip-link" id="stripLink" type="text" readonly placeholder="Customer link will appear here..." style="display:none;">
                 <button class="strip-copy" id="stripCopy" style="display:none;" title="Copy link">📋</button>
             </div>
 
-            <!-- Incoming Call Banner -->
+            <!-- Incoming call -->
             <div class="incoming-call" id="incomingCall" style="display:none;">
-                <div class="incoming-icon">📲</div>
+                <div class="incoming-icon-wrap">📲</div>
                 <div class="incoming-info">
                     <h3>Incoming KYC Call</h3>
                     <p>An agent wants to verify your identity</p>
                 </div>
                 <div class="incoming-actions">
-                    <button class="btn btn-accept" id="acceptCall">
-                        <span>✅</span> Accept
-                    </button>
-                    <button class="btn btn-reject" id="rejectCall">
-                        <span>❌</span> Reject
-                    </button>
+                    <button class="btn btn-accept" id="acceptCall">✅ Accept</button>
+                    <button class="btn btn-reject" id="rejectCall">❌ Reject</button>
                 </div>
             </div>
 
         </main>
     </div>
 
-    <!-- Desktop-only block screen (shown to agents on mobile/tablet) -->
+    <!-- Desktop block -->
     <div class="desktop-only-block" id="desktopOnlyBlock">
         <div class="desktop-block-card">
             <div class="desktop-block-icon">🖥️</div>
-            <div class="desktop-block-badge">⚠️ Desktop Required</div>
+            <div class="desktop-block-badge">⚠ Desktop Required</div>
             <h2>Agent Portal</h2>
             <p>The KYC Agent portal is only available on a desktop or laptop computer.</p>
             <p>Please open this link on your computer to conduct KYC verification calls.</p>
